@@ -1,0 +1,27 @@
+# nginx proxy address - http://172.17.0.1:8084
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "1"
+
+services:
+  yacy:
+    image: yacy/yacy_search_server:latest
+    container_name: yacy-app
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - yacy
+    ports:
+      - "8084:8090"
+    environment:
+      TZ: ${TZ:-America/New_York}
+    volumes:
+      - ./rootfs/config/yacy:/config
+      - ./rootfs/data/yacy:/data
+
+networks:
+  yacy:
+    external: false
