@@ -19,8 +19,8 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
     volumes:
-      - ./rootfs/config/yacy:/config
-      - ./rootfs/data/yacy:/data
+      - ./volumes/config/yacy:/config
+      - ./volumes/data/yacy:/data
 
 networks:
   yacy:
