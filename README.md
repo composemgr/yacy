@@ -45,8 +45,8 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/config/yacy` - Data storage
-- `./rootfs/data/yacy` - Data storage
+- `./volumes/config/yacy` - Data storage
+- `./volumes/data/yacy` - Data storage
 
 ## 🔍 Logging
 
