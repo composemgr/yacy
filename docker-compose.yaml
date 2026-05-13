@@ -25,8 +25,8 @@ services:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: yacy-app
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
-      YACY_ADMIN_USER: ${APP_ADMIN_USER:-admin}
-      YACY_ADMIN_PASS: ${APP_ADMIN_PASS:-changeme_admin_password}
+      # Admin password is set via yacy.init property naming: YACY_adminAccountBase64MD5
+      # Default login is admin:yacy - change via web UI at /ConfigAccounts_p.html
     volumes:
       - ./volumes/data/yacy:/opt/yacy_search_server/DATA
     labels:
