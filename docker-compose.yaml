@@ -1,5 +1,6 @@
 # nginx proxy address - http://172.17.0.1:8084
 
+name: yacy
 x-logging: &default-logging
   driver: json-file
   options:
@@ -9,19 +10,23 @@ x-logging: &default-logging
 services:
   yacy:
     image: yacy/yacy_search_server:latest
+    pull_policy: always
     container_name: yacy-app
-    restart: unless-stopped
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
     logging: *default-logging
     networks:
       - yacy
     ports:
-      - "8084:8090"
+      - "172.17.0.1:8084:8090"
     environment:
       TZ: ${TZ:-America/New_York}
+      YACY_ADMIN_USER: ${APP_ADMIN_USER:-admin}
+      YACY_ADMIN_PASS: ${APP_ADMIN_PASS:-changeme_admin_password}
     volumes:
-      - ./volumes/config/yacy:/config
-      - ./volumes/data/yacy:/data
+      - ./volumes/data/yacy:/opt/yacy_search_server/DATA
 
 networks:
   yacy:
+    name: yacy
     external: false
