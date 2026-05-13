@@ -17,16 +17,40 @@ services:
     logging: *default-logging
     networks:
       - yacy
+      - proxy
+      - cloudflare
     ports:
       - "172.17.0.1:8084:8090"
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: yacy-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
       YACY_ADMIN_USER: ${APP_ADMIN_USER:-admin}
       YACY_ADMIN_PASS: ${APP_ADMIN_PASS:-changeme_admin_password}
     volumes:
       - ./volumes/data/yacy:/opt/yacy_search_server/DATA
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://yacy-app:8090'
+      - 'cloudflare.hostname=yacy.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.yacy-app.entrypoints=http'
+      - 'traefik.http.routers.yacy-app-secure.tls=true'
+      - 'traefik.http.routers.yacy-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.yacy-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.yacy-app.middlewares=yacy-app-https-redirect'
+      - 'traefik.http.routers.yacy-app-secure.entrypoints=https'
+      - 'traefik.http.routers.yacy-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.yacy-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.yacy-app-secure.service=yacy-app'
+      - 'traefik.http.services.yacy-app.loadbalancer.server.port=8090'
 
 networks:
   yacy:
     name: yacy
     external: false
+  proxy:
+    external: true
+  cloudflare:
+    external: true
