@@ -1,56 +1,33 @@
-# nginx proxy address - http://172.17.0.1:8084
+# nginx proxy address - http://172.17.0.1:64394
 
 name: yacy
 x-logging: &default-logging
-  driver: json-file
   options:
-    max-size: "5m"
-    max-file: "1"
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
 
 services:
-  yacy:
+  app:
     image: yacy/yacy_search_server:latest
-    pull_policy: always
     container_name: yacy-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
     hostname: ${BASE_HOST_NAME:-$HOSTNAME}
     restart: always
+    pull_policy: always
     logging: *default-logging
-    networks:
-      - yacy
-      - proxy
-      - cloudflare
-    ports:
-      - "172.17.0.1:8084:8090"
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: yacy-app
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
-      # Admin password is set via yacy.init property naming: YACY_adminAccountBase64MD5
-      # Default login is admin:yacy - change via web UI at /ConfigAccounts_p.html
+    ports:
+      - '172.17.0.1:64394:8090'
     volumes:
-      - ./volumes/data/yacy:/opt/yacy_search_server/DATA
-    labels:
-      - 'traefik.enable=true'
-      - 'cloudflare.enable=true'
-      - 'traefik.docker.network=proxy'
-      - 'cloudflare.service=http://yacy-app:8090'
-      - 'cloudflare.hostname=yacy.${CLOUDFLARE_ZONE_NAME:-}'
-      - 'traefik.http.routers.yacy-app.entrypoints=http'
-      - 'traefik.http.routers.yacy-app-secure.tls=true'
-      - 'traefik.http.routers.yacy-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
-      - 'traefik.http.middlewares.yacy-app-https-redirect.redirectscheme.scheme=https'
-      - 'traefik.http.routers.yacy-app.middlewares=yacy-app-https-redirect'
-      - 'traefik.http.routers.yacy-app-secure.entrypoints=https'
-      - 'traefik.http.routers.yacy-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
-      - 'traefik.http.routers.yacy-app-secure.tls.certresolver=cloudflare'
-      - 'traefik.http.routers.yacy-app-secure.service=yacy-app'
-      - 'traefik.http.services.yacy-app.loadbalancer.server.port=8090'
+      - './volumes/data/yacy:/opt/yacy_search_server/DATA:z'
+    networks:
+      - yacy
 
 networks:
   yacy:
     name: yacy
     external: false
-  proxy:
-    external: true
-  cloudflare:
-    external: true

@@ -1,0 +1,44 @@
+name: yacy
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: yacy/yacy_search_server:latest
+    container_name: yacy-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: yacy-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    volumes:
+      - './volumes/data/yacy:/opt/yacy_search_server/DATA:z'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik'
+      - 'traefik.http.routers.yacy-app.entrypoints=http'
+      - 'traefik.http.routers.yacy-app.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.routers.yacy-app.middlewares=yacy-app-https-redirect'
+      - 'traefik.http.middlewares.yacy-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.yacy-app-secure.entrypoints=https'
+      - 'traefik.http.routers.yacy-app-secure.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.routers.yacy-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.yacy-app-secure.service=yacy-app'
+      - 'traefik.http.services.yacy-app.loadbalancer.server.port=8090'
+    networks:
+      - yacy
+      - traefik
+
+networks:
+  yacy:
+    name: yacy
+    external: false
+  traefik:
+    external: true
